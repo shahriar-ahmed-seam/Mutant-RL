@@ -22,12 +22,8 @@ def test_cli_version():
 def test_cli_generate(tmp_path: Path):
     src_dir = tmp_path / "src"
     src_dir.mkdir()
-    (src_dir / "math_util.py").write_text(
-        "def add(a: int, b: int):\n    return a + b\n"
-    )
-    (src_dir / "runner.py").write_text(
-        "def run():\n    return add(1, 2)\n"
-    )
+    (src_dir / "math_util.py").write_text("def add(a: int, b: int):\n    return a + b\n")
+    (src_dir / "runner.py").write_text("def run():\n    return add(1, 2)\n")
 
     out_file = tmp_path / "out.json"
     result = runner.invoke(cli_app, ["generate", str(src_dir), "--out", str(out_file)])
@@ -46,9 +42,7 @@ def test_cli_audit_leak(tmp_path: Path):
     stmt.write_text("Crash observed when executing data loader.")
     patch.write_text("--- a/f.py\n+++ b/f.py\n+def fix_conn(): pass\n")
 
-    result = runner.invoke(
-        cli_app, ["audit-leak", "--statement", str(stmt), "--patch", str(patch)]
-    )
+    result = runner.invoke(cli_app, ["audit-leak", "--statement", str(stmt), "--patch", str(patch)])
     assert result.exit_code == 0
     assert "Quarantine Decision: ALLOW" in result.stdout
 

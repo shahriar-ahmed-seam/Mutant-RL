@@ -134,9 +134,7 @@ def audit_leak(req: LeakAuditRequest) -> LeakAuditReport:
 def audit_trajectories(req: TrajectoryAuditRequest) -> SimToRealMetrics:
     """Audits agent trajectories, computes Sim-to-Real gap, and updates stopping signals."""
     global current_metrics
-    metrics = pipeline.audit_trajectories(
-        req.synthetic_trajectories, req.real_trajectories
-    )
+    metrics = pipeline.audit_trajectories(req.synthetic_trajectories, req.real_trajectories)
     current_metrics = metrics
     return metrics
 
@@ -146,4 +144,5 @@ def index_console() -> str:
     """Renders the Anti-AI-Slop developer telemetry console."""
     # We will serve the dedicated console from UI subsystem
     from mutant_rl.ui.console import get_console_html
+
     return get_console_html()

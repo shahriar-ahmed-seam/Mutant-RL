@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 class AgentActionType(StrEnum):
     """Categorization of agent tool invocation."""
+
     EDIT_FILE = "edit_file"
     VIEW_FILE = "view_file"
     LIST_DIR = "list_dir"
@@ -21,6 +22,7 @@ class AgentActionType(StrEnum):
 
 class ActionStep(BaseModel):
     """Discrete action step executed by the policy during a rollout."""
+
     step_index: int
     action_type: AgentActionType
     target_path: str = ""
@@ -33,6 +35,7 @@ class ActionStep(BaseModel):
 
 class ShortcutHeuristicMetrics(BaseModel):
     """Metrics quantifying whether policy is exploiting generator fingerprints."""
+
     revert_recent_commit_ratio: float = Field(ge=0.0, le=1.0)
     localized_one_line_edit_ratio: float = Field(ge=0.0, le=1.0)
     blind_diff_grep_ratio: float = Field(ge=0.0, le=1.0)
@@ -43,6 +46,7 @@ class ShortcutHeuristicMetrics(BaseModel):
 
 class PolicyTrajectory(BaseModel):
     """Complete trajectory trace of an agent solving an environment instance."""
+
     trajectory_id: str
     instance_id: str
     instance_type: str = "synthetic"  # synthetic or real_pr

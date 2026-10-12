@@ -215,7 +215,7 @@ class ConfigCodeMismatchMutator(BaseMutationOperator):
 
                         cfg_diff = (
                             f"--- a/{cfg_path}\n+++ b/{cfg_path}\n"
-                            f"@@ -{cfg_target_idx+1} +{cfg_target_idx+1} @@\n"
+                            f"@@ -{cfg_target_idx + 1} +{cfg_target_idx + 1} @@\n"
                             f"-{orig_cfg}\n+{mut_cfg}\n"
                         )
 
@@ -283,8 +283,7 @@ class SchemaMigrationMutator(BaseMutationOperator):
         )
 
         schema_diff = (
-            f"--- a/{file_a}\n+++ b/{file_a}\n+{mut_a}\n"
-            f"--- a/{file_b}\n+++ b/{file_b}\n+{mut_b}\n"
+            f"--- a/{file_a}\n+++ b/{file_a}\n+{mut_a}\n--- a/{file_b}\n+++ b/{file_b}\n+{mut_b}\n"
         )
 
         return CoupledMutation(

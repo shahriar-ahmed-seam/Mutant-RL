@@ -15,6 +15,7 @@ from mutant_rl.schemas.environment import FileNode, FileType
 @dataclass
 class SymbolDefinition:
     """Represents a defined function, class, or variable symbol."""
+
     file_path: str
     symbol_name: str
     symbol_type: str  # "function", "class", "variable"
@@ -25,6 +26,7 @@ class SymbolDefinition:
 @dataclass
 class SymbolReference:
     """Represents a reference/call to a symbol."""
+
     file_path: str
     target_symbol: str
     line_number: int

@@ -38,9 +38,7 @@ def test_diff_fingerprint_leak_detector_clean():
 
 
 def test_diff_fingerprint_leak_detector_detected():
-    leaked_statement = (
-        "Please fix dispatch_socket on line 10 in src/net.py by setting timeout=30"
-    )
+    leaked_statement = "Please fix dispatch_socket on line 10 in src/net.py by setting timeout=30"
     patch = (
         "--- a/src/net.py\n+++ b/src/net.py\n"
         "@@ -10,1 +10,1 @@\n"

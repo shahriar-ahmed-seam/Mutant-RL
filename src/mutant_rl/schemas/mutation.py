@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 class MutationOperatorType(StrEnum):
     """Semantic category of mutation operator."""
+
     COMPOUND_AST = "compound_ast"
     CROSS_FILE_CONTRACT = "cross_file_contract"
     SCHEMA_MIGRATION = "schema_migration"
@@ -20,6 +21,7 @@ class MutationOperatorType(StrEnum):
 
 class MutationTarget(BaseModel):
     """Specification of an edit location in source or config."""
+
     file_path: str
     target_symbol: str = ""
     start_line: int
@@ -31,6 +33,7 @@ class MutationTarget(BaseModel):
 
 class CoupledMutation(BaseModel):
     """Atomically coupled multi-site mutation spanning code and configs."""
+
     mutation_id: str
     name: str
     operator_type: MutationOperatorType
@@ -55,6 +58,7 @@ class CoupledMutation(BaseModel):
 
 class MutationTopology(BaseModel):
     """Topological graph structure of mutated repository components."""
+
     environment_id: str
     primary_code_nodes: list[str] = Field(default_factory=list)
     config_nodes: list[str] = Field(default_factory=list)

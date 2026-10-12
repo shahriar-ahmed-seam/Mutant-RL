@@ -35,9 +35,7 @@ def version() -> None:
 
 @app.command()
 def generate(
-    repo_path: Annotated[
-        Path, typer.Argument(help="Path to repository or code sample directory.")
-    ],
+    repo_path: Annotated[Path, typer.Argument(help="Path to repository or code sample directory.")],
     repo_name: Annotated[
         str, typer.Option("--name", "-n", help="Repository identifier.")
     ] = "sample/repo",
