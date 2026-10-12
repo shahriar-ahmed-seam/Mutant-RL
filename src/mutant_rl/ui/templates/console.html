@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mutant-RL // Sim-to-Real Telemetry Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-canvas: #090b0e;
+      --bg-panel: #101318;
+      --bg-subtle: #161b22;
+      --bg-hover: #1f242c;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.16);
+      --border-accent: rgba(56, 139, 253, 0.35);
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent-green: #2ea043;
+      --accent-green-bg: rgba(46, 160, 67, 0.12);
+      --accent-red: #f85149;
+      --accent-red-bg: rgba(248, 81, 73, 0.12);
+      --accent-amber: #d29922;
+      --accent-amber-bg: rgba(210, 153, 34, 0.12);
+      --accent-blue: #388bfd;
+      --accent-blue-bg: rgba(56, 139, 253, 0.12);
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation Bar */
+    header {
+      height: 48px;
+      border-bottom: 1px solid var(--border-subtle);
+      background-color: var(--bg-panel);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: -0.01em;
+    }
+    .brand svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--accent-blue);
+      fill: none;
+      stroke-width: 1.5;
+    }
+    .brand-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      border: 1px solid var(--border-subtle);
+      padding: 1px 6px;
+      border-radius: var(--radius-sm);
+    }
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .status-dot-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: var(--accent-green);
+    }
+    .status-dot.danger {
+      background-color: var(--accent-red);
+      box-shadow: 0 0 6px var(--accent-red);
+    }
+    .header-actions button {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .header-actions button:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-strong);
+    }
+
+    /* Container Layout */
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* KPI Metrics Grid */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+    }
+    .metric-card {
+      background-color: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+    }
+    .metric-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .metric-header svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--text-muted);
+      stroke-width: 1.5;
+      fill: none;
+    }
+    .metric-value {
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+    .metric-footer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+    .badge-ok {
+      color: var(--accent-green);
+      background-color: var(--accent-green-bg);
+      padding: 1px 5px;
+      border-radius: var(--radius-sm);
+    }
+    .badge-warn {
+      color: var(--accent-amber);
+      background-color: var(--accent-amber-bg);
+      padding: 1px 5px;
+      border-radius: var(--radius-sm);
+    }
+    .badge-crit {
+      color: var(--accent-red);
+      background-color: var(--accent-red-bg);
+      padding: 1px 5px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* Two-Column Telemetry Deck */
+    .deck-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 1024px) {
+      .deck-grid { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background-color: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .panel-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      background-color: var(--bg-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .panel-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-title svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--text-secondary);
+      fill: none;
+      stroke-width: 1.5;
+    }
+    .panel-body {
+      padding: 16px;
+      flex: 1;
+    }
+
+    /* Chart SVG container */
+    .chart-container {
+      width: 100%;
+      height: 240px;
+      position: relative;
+    }
+    .chart-svg {
+      width: 100%;
+      height: 100%;
+    }
+    .chart-legend {
+      display: flex;
+      gap: 16px;
+      margin-top: 10px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-secondary);
+    }
+    .legend-line {
+      width: 12px;
+      height: 2px;
+    }
+
+    /* Tabbed navigation */
+    .tabs-bar {
+      display: flex;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-subtle);
+    }
+    .tab-btn {
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tab-btn.active {
+      color: var(--text-primary);
+      border-bottom-color: var(--accent-blue);
+      background: var(--bg-panel);
+    }
+    .tab-btn:hover:not(.active) {
+      color: var(--text-primary);
+    }
+
+    /* Data table */
+    .dense-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .dense-table th {
+      text-align: left;
+      padding: 8px 10px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .dense-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    .dense-table tr:hover td {
+      background-color: var(--bg-hover);
+    }
+
+    /* Inspector Code blocks */
+    .code-viewer {
+      background-color: var(--bg-canvas);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.5;
+      padding: 12px;
+      overflow-x: auto;
+      max-height: 280px;
+      color: var(--text-primary);
+    }
+
+    /* Control action buttons */
+    .action-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn-action {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.15s ease;
+    }
+    .btn-action:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-accent);
+    }
+    .btn-action svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--text-secondary);
+      fill: none;
+      stroke-width: 1.5;
+    }
+
+    .alert-banner {
+      background-color: var(--accent-red-bg);
+      border: 1px solid var(--accent-red);
+      color: #ff7b72;
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 12px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+    .alert-banner.active {
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation -->
+  <header>
+    <div class="brand">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <span>Mutant-RL</span>
+      <span class="brand-tag">v0.1.0</span>
+      <span class="brand-tag">SWE-RL CALIBRATOR</span>
+    </div>
+    <div class="header-status">
+      <div class="status-dot-wrap">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusLabel">CALIBRATED</span>
+      </div>
+      <div class="header-actions">
+        <button id="refreshBtn" onclick="fetchLiveTelemetry()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Sync Telemetry
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Emergency Stopping Signal Alert Banner -->
+    <div id="stopSignalBanner" class="alert-banner">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="stopSignalText">EMERGENCY STOPPING SIGNAL TRIGGERED: Sim-to-Real gap breach.</span>
+    </div>
+
+    <!-- High-Density Telemetry Metric Row -->
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="metric-header">
+          <span>Sim-to-Real Gap (&Delta;)</span>
+          <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        </div>
+        <div class="metric-value" id="metricGap">0.030</div>
+        <div class="metric-footer">
+          <span class="badge-ok" id="badgeGap">&lt; 0.25 Safety Threshold</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span>Synthetic Resolve Rate</span>
+          <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <div class="metric-value" id="metricSynthRate">71.0%</div>
+        <div class="metric-footer">
+          <span>Mean Reward: </span><span id="metricReward">0.74</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span>Real PR Resolve Rate</span>
+          <svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+        </div>
+        <div class="metric-value" id="metricRealRate">68.0%</div>
+        <div class="metric-footer">
+          <span>Anchor PRs: </span><span id="metricRealVol">210 tasks</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span>TV Action Divergence</span>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <div class="metric-value" id="metricDivergence">0.084</div>
+        <div class="metric-footer">
+          <span class="badge-ok">D_TV &lt; 0.35 Bound</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span>Shortcut Exploit Index</span>
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="metric-value" id="metricShortcut">0.092</div>
+        <div class="metric-footer">
+          <span class="badge-ok">Revert Exploits Blocked</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span>Diff Leak Quarantine Rate</span>
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="metric-value" id="metricLeakRate">1.8%</div>
+        <div class="metric-footer">
+          <span>N-Gram Overlap &lt; 0.25</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Deck: Divergence Curve & Interactive Inspector -->
+    <div class="deck-grid">
+
+      <!-- Left Column: Live Sim-to-Real Trajectory Chart -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Sim-to-Real Telemetry Curve // Rollout Step Evolution
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);">
+            WINDOW: 100 STEPS
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="chart-container">
+            <svg class="chart-svg" viewBox="0 0 700 220" preserveAspectRatio="none">
+              <!-- Grid lines -->
+              <line x1="40" y1="30" x2="680" y2="30" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+              <line x1="40" y1="80" x2="680" y2="80" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+              <line x1="40" y1="130" x2="680" y2="130" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+              <line x1="40" y1="180" x2="680" y2="180" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+
+              <!-- Axis labels -->
+              <text x="10" y="34" fill="#6e7681" font-size="10" font-family="JetBrains Mono">1.0</text>
+              <text x="10" y="84" fill="#6e7681" font-size="10" font-family="JetBrains Mono">0.7</text>
+              <text x="10" y="134" fill="#6e7681" font-size="10" font-family="JetBrains Mono">0.4</text>
+              <text x="10" y="184" fill="#6e7681" font-size="10" font-family="JetBrains Mono">0.0</text>
+
+              <!-- Uncalibrated Baseline Curves (Whiteboard Antipattern: Synthetic climbs, real flat) -->
+              <!-- Synthetic Reward (Red/Dashed climbing) -->
+              <path d="M 50 160 Q 200 130 350 70 T 670 40" fill="none" stroke="#f85149" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.6"/>
+              <!-- Real Resolve Rate (Red/Dashed flatline) -->
+              <path d="M 50 165 Q 200 165 350 164 T 670 165" fill="none" stroke="#f85149" stroke-width="1.5" stroke-dasharray="2,2" opacity="0.4"/>
+
+              <!-- Calibrated Mutant-RL Curves (Target: Healthy coupled tracking) -->
+              <!-- Calibrated Synthetic Resolve -->
+              <path d="M 50 165 Q 180 140 320 100 T 670 75" fill="none" stroke="#388bfd" stroke-width="2"/>
+              <!-- Calibrated Real PR Resolve (Tightly bound) -->
+              <path d="M 50 168 Q 180 145 320 108 T 670 82" fill="none" stroke="#2ea043" stroke-width="2"/>
+
+              <!-- Threshold Safe Boundary -->
+              <line x1="50" y1="100" x2="670" y2="100" stroke="#d29922" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
+            </svg>
+          </div>
+
+          <div class="chart-legend">
+            <div class="legend-item">
+              <span class="legend-line" style="background: #388bfd;"></span>
+              <span>Calibrated Synthetic (&rho;_synth)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-line" style="background: #2ea043;"></span>
+              <span>Real PR Transfer (&rho;_real)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-line" style="background: #f85149; border-top: 1px dashed #f85149;"></span>
+              <span>Uncalibrated Shortcut Exploit (Sim-to-Real Collapse)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Interactive Diagnostic Actions -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            Auditor Controls & Stress Tests
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="action-panel">
+            <button class="btn-action" onclick="simulateNominalBatch()">
+              <span>Simulate Calibrated Rollout Batch</span>
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <button class="btn-action" onclick="simulateCollapseBatch()">
+              <span>Simulate Sim-to-Real Collapse Spike</span>
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <button class="btn-action" onclick="triggerDiffLeakTest()">
+              <span>Execute Diff Leak Fingerprint Test</span>
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <button class="btn-action" onclick="resetToBaseline()">
+              <span>Reset to Calibrated Baseline</span>
+              <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            </button>
+          </div>
+
+          <div style="margin-top: 16px; border-top: 1px solid var(--border-subtle); padding-top: 12px;">
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); margin-bottom: 6px;">
+              ACTIVE GENERATOR CALIBRATION WEIGHTS:
+            </div>
+            <table class="dense-table">
+              <tr>
+                <td style="color: var(--text-muted);">Min Files / Mutation</td>
+                <td style="color: var(--text-primary);">2 files</td>
+              </tr>
+              <tr>
+                <td style="color: var(--text-muted);">Config/Code Coupled Ratio</td>
+                <td style="color: var(--text-primary);">28.5%</td>
+              </tr>
+              <tr>
+                <td style="color: var(--text-muted);">Decoupled Oracle Mode</td>
+                <td style="color: var(--accent-green);">Synthesized Regression</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Inspector Deck: Tabs for Mutation, Issue, Leak Report, Raw JSON -->
+    <div class="panel">
+      <div class="tabs-bar">
+        <button class="tab-btn active" onclick="switchTab('tab-mutation', this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          Compound Mutation Inspector
+        </button>
+        <button class="tab-btn" onclick="switchTab('tab-issue', this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Blackbox Behavioral Issue Spec
+        </button>
+        <button class="tab-btn" onclick="switchTab('tab-leak', this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Leak Quarantine Audit
+        </button>
+        <button class="tab-btn" onclick="switchTab('tab-json', this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          Raw Telemetry Payload
+        </button>
+      </div>
+
+      <div class="panel-body">
+
+        <!-- Tab 1: Compound Mutation -->
+        <div id="tab-mutation" class="tab-content">
+          <div style="margin-bottom: 10px; font-size: 12px; color: var(--text-secondary);">
+            Atomically couples cross-module function contracts and configuration keys to prevent trivial 1-line bug shortcuts:
+          </div>
+          <pre class="code-viewer"><code>--- a/src/gateway/client.py
++++ b/src/gateway/client.py
+@@ -14,2 +14,2 @@
+-def initialize_transport(concurrency: int = 4):
++def initialize_transport(enforce_strict: bool, concurrency: int = 4):
+     return ConnectionPool(concurrency)
+
+--- a/config/gateway.yaml
++++ b/config/gateway.yaml
+@@ -3,1 +3,1 @@
+-timeout: 30
++legacy_timeout: 30
+</code></pre>
+        </div>
+
+        <!-- Tab 2: Blackbox Issue -->
+        <div id="tab-issue" class="tab-content" style="display: none;">
+          <div style="margin-bottom: 10px; font-size: 12px; color: var(--text-secondary);">
+            Synthesized issue statement describing behavioral symptoms without leaking patch lines or culprit symbol names:
+          </div>
+          <pre class="code-viewer"><code># Bug Report: Observed Regression in org/gateway
+
+## Description
+After updating client initialization parameters, bootstrapping fails immediately during service launch.
+
+## Expected Behavior
+Client cleanly starts with provided parameters and falls back to default timeout values.
+
+## Observed Symptoms
+- Category: runtime_exception
+  Impact: Initialization crashes with ContractViolationError
+  Error Log: ContractViolationError: Missing required positional parameter</code></pre>
+        </div>
+
+        <!-- Tab 3: Leak Report -->
+        <div id="tab-leak" class="tab-content" style="display: none;">
+          <table class="dense-table">
+            <thead>
+              <tr>
+                <th>Audit Check</th>
+                <th>Measured Value</th>
+                <th>Threshold</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>3-Gram / 4-Gram Overlap</td>
+                <td>4.2%</td>
+                <td>&le; 25.0%</td>
+                <td><span class="badge-ok">PASSED</span></td>
+              </tr>
+              <tr>
+                <td>Token Jaccard Overlap</td>
+                <td>6.8%</td>
+                <td>&le; 30.0%</td>
+                <td><span class="badge-ok">PASSED</span></td>
+              </tr>
+              <tr>
+                <td>Direct AST Symbol Leakage</td>
+                <td>0 occurrences</td>
+                <td>0 allowed</td>
+                <td><span class="badge-ok">PASSED</span></td>
+              </tr>
+              <tr>
+                <td>Line Number Disclosures</td>
+                <td>0 occurrences</td>
+                <td>0 allowed</td>
+                <td><span class="badge-ok">PASSED</span></td>
+              </tr>
+              <tr>
+                <td>Quarantine Action</td>
+                <td>ALLOW</td>
+                <td>-</td>
+                <td><span class="badge-ok">PASSED</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Tab 4: Raw JSON -->
+        <div id="tab-json" class="tab-content" style="display: none;">
+          <pre class="code-viewer" id="rawJsonView"><code>Loading telemetry...</code></pre>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    async function fetchLiveTelemetry() {
+      try {
+        const res = await fetch('/api/metrics');
+        if (res.ok) {
+          const data = await res.json();
+          updateDashboard(data);
+        }
+      } catch (e) {
+        console.warn('Could not fetch metrics endpoint, using local model:', e);
+      }
+    }
+
+    function updateDashboard(m) {
+      document.getElementById('metricGap').innerText = Number(m.sim_to_real_gap).toFixed(3);
+      document.getElementById('metricSynthRate').innerText = (m.synthetic_resolve_rate * 100).toFixed(1) + '%';
+      document.getElementById('metricReward').innerText = Number(m.synthetic_reward_mean).toFixed(2);
+      document.getElementById('metricRealRate').innerText = (m.real_pr_resolve_rate * 100).toFixed(1) + '%';
+      document.getElementById('metricRealVol').innerText = m.real_pr_volume_count + ' tasks';
+      document.getElementById('metricDivergence').innerText = Number(m.wasserstein_action_divergence).toFixed(3);
+      document.getElementById('metricShortcut').innerText = Number(m.shortcut_learning_index).toFixed(3);
+      document.getElementById('metricLeakRate').innerText = (m.generator_fingerprint_leak_rate * 100).toFixed(1) + '%';
+
+      const banner = document.getElementById('stopSignalBanner');
+      const dot = document.getElementById('statusDot');
+      const label = document.getElementById('statusLabel');
+
+      if (m.stopping_signal_triggered) {
+        banner.classList.add('active');
+        document.getElementById('stopSignalText').innerText = 'EMERGENCY STOPPING SIGNAL TRIGGERED: ' + (m.stopping_reason || 'Sim-to-Real gap threshold breached.');
+        dot.classList.add('danger');
+        label.innerText = 'COLLAPSE DETECTED';
+        label.style.color = 'var(--accent-red)';
+      } else {
+        banner.classList.remove('active');
+        dot.classList.remove('danger');
+        label.innerText = 'CALIBRATED';
+        label.style.color = 'var(--accent-green)';
+      }
+
+      document.getElementById('rawJsonView').innerText = JSON.stringify(m, null, 2);
+    }
+
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).style.display = 'block';
+      btn.classList.add('active');
+    }
+
+    function simulateNominalBatch() {
+      const data = {
+        evaluation_window: 100,
+        synthetic_volume_count: 1450,
+        real_pr_volume_count: 240,
+        synthetic_reward_mean: 0.76,
+        synthetic_resolve_rate: 0.72,
+        real_pr_resolve_rate: 0.69,
+        sim_to_real_gap: 0.03,
+        wasserstein_action_divergence: 0.075,
+        generator_fingerprint_leak_rate: 0.015,
+        shortcut_learning_index: 0.088,
+        calibration_status: "healthy_calibrated",
+        stopping_signal_triggered: false,
+        stopping_reason: null
+      };
+      updateDashboard(data);
+    }
+
+    function simulateCollapseBatch() {
+      const data = {
+        evaluation_window: 100,
+        synthetic_volume_count: 1600,
+        real_pr_volume_count: 240,
+        synthetic_reward_mean: 0.94,
+        synthetic_resolve_rate: 0.89,
+        real_pr_resolve_rate: 0.22,
+        sim_to_real_gap: 0.67,
+        wasserstein_action_divergence: 0.440,
+        generator_fingerprint_leak_rate: 0.12,
+        shortcut_learning_index: 0.620,
+        calibration_status: "sim_to_real_collapse",
+        stopping_signal_triggered: true,
+        stopping_reason: "Sim-to-Real gap (67.00%) exceeds safety threshold (25.00%). Policy exploiting synthetic revert shortcuts."
+      };
+      updateDashboard(data);
+    }
+
+    function triggerDiffLeakTest() {
+      switchTab('tab-leak', document.querySelectorAll('.tab-btn')[2]);
+    }
+
+    function resetToBaseline() {
+      fetchLiveTelemetry();
+    }
+
+    window.addEventListener('DOMContentLoaded', fetchLiveTelemetry);
+  </script>
+</body>
+</html>
