@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 class SymptomCategory(StrEnum):
     """Observable external behavioral regression categories."""
+
     RUNTIME_EXCEPTION = "runtime_exception"
     STATUS_CODE_FAILURE = "status_code_failure"
     ASSERTION_REGRESSION = "assertion_regression"
@@ -20,6 +21,7 @@ class SymptomCategory(StrEnum):
 
 class BehavioralSymptom(BaseModel):
     """External observable symptom exhibited by the bug."""
+
     category: SymptomCategory
     description: str
     observed_exit_code: int = 1
@@ -30,6 +32,7 @@ class BehavioralSymptom(BaseModel):
 
 class BlackboxBehaviorSpec(BaseModel):
     """Formal behavioral symptom spec for issue prompt synthesis."""
+
     spec_id: str
     repo_name: str
     symptoms: list[BehavioralSymptom] = Field(min_length=1)

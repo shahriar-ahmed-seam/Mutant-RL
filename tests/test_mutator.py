@@ -11,15 +11,8 @@ from mutant_rl.schemas.environment import FileNode, FileType
 
 
 def test_dependency_graph_analyzer():
-    code_def = (
-        "def compute_metrics(threshold: float):\n"
-        "    return {'score': threshold * 10}\n"
-    )
-    code_caller = (
-        "def run_eval():\n"
-        "    res = compute_metrics(0.5)\n"
-        "    return res\n"
-    )
+    code_def = "def compute_metrics(threshold: float):\n    return {'score': threshold * 10}\n"
+    code_caller = "def run_eval():\n    res = compute_metrics(0.5)\n    return res\n"
     files = {
         "src/calculator.py": FileNode(path="src/calculator.py", content=code_def),
         "src/runner.py": FileNode(path="src/runner.py", content=code_caller),
@@ -34,15 +27,8 @@ def test_dependency_graph_analyzer():
 
 
 def test_cross_file_contract_mutator():
-    code_def = (
-        "def compute_metrics(threshold: float):\n"
-        "    return {'score': threshold * 10}\n"
-    )
-    code_caller = (
-        "def run_eval():\n"
-        "    res = compute_metrics(0.5)\n"
-        "    return res\n"
-    )
+    code_def = "def compute_metrics(threshold: float):\n    return {'score': threshold * 10}\n"
+    code_caller = "def run_eval():\n    res = compute_metrics(0.5)\n    return res\n"
     files = {
         "src/calculator.py": FileNode(path="src/calculator.py", content=code_def),
         "src/runner.py": FileNode(path="src/runner.py", content=code_caller),
@@ -69,12 +55,7 @@ def test_cross_file_contract_mutator():
 
 def test_config_code_mismatch_mutator():
     config_yaml = "database:\n  timeout: 30\n  retries: 3\n"
-    code_py = (
-        "import yaml\n"
-        "def get_conn():\n"
-        "    val = 'timeout'\n"
-        "    return val\n"
-    )
+    code_py = "import yaml\ndef get_conn():\n    val = 'timeout'\n    return val\n"
     files = {
         "config.yaml": FileNode(
             path="config.yaml",

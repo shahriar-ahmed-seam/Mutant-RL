@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 class LeakageType(StrEnum):
     """Classification of generator fingerprint leakage."""
+
     EXACT_SYMBOL_PATH = "exact_symbol_path"
     DIFF_PATCH_VERBATIM = "diff_patch_verbatim"
     LINE_NUMBER_SPECIFICATION = "line_number_specification"
@@ -19,6 +20,7 @@ class LeakageType(StrEnum):
 
 class DetectedLeak(BaseModel):
     """Specific leakage instance found in problem statement."""
+
     leak_type: LeakageType
     token_or_phrase: str
     severity: float = Field(ge=0.0, le=1.0)
@@ -27,6 +29,7 @@ class DetectedLeak(BaseModel):
 
 class DiffFingerprint(BaseModel):
     """Quantitative fingerprint metrics measuring diff text leakage in problem statement."""
+
     n_gram_overlap_score: float = Field(
         ge=0.0, le=1.0, description="3-gram/4-gram overlap with patch"
     )
@@ -39,6 +42,7 @@ class DiffFingerprint(BaseModel):
 
 class LeakAuditReport(BaseModel):
     """Comprehensive leakage audit for a synthesized issue statement."""
+
     instance_id: str
     fingerprint: DiffFingerprint
     detected_leaks: list[DetectedLeak] = Field(default_factory=list)

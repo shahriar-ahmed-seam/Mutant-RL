@@ -10,12 +10,14 @@ from pydantic import BaseModel, Field
 
 class InstanceType(StrEnum):
     """Source classification of the environment instance."""
+
     SYNTHETIC = "synthetic"
     REAL_PR = "real_pr"
 
 
 class FileType(StrEnum):
     """File syntax classification."""
+
     PYTHON = "python"
     YAML = "yaml"
     TOML = "toml"
@@ -26,6 +28,7 @@ class FileType(StrEnum):
 
 class FileNode(BaseModel):
     """Individual repository file model with structural metadata."""
+
     path: str
     content: str
     file_type: FileType = FileType.PYTHON
@@ -49,6 +52,7 @@ class FileNode(BaseModel):
 
 class RepoState(BaseModel):
     """Snapshot representation of a target repository state."""
+
     repo_name: str
     base_commit: str
     files: dict[str, FileNode] = Field(default_factory=dict)
@@ -58,6 +62,7 @@ class RepoState(BaseModel):
 
 class EnvironmentInstance(BaseModel):
     """Canonical benchmark/training environment instance."""
+
     instance_id: str
     repo_name: str
     base_commit: str

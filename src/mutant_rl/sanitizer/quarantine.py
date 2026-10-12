@@ -34,9 +34,7 @@ class LeakQuarantineManager:
         sanitized = problem_statement
         for leak in leaks:
             escaped = re.escape(leak.token_or_phrase)
-            sanitized = re.sub(
-                escaped, "[REDACTED_SYMBOL]", sanitized, flags=re.IGNORECASE
-            )
+            sanitized = re.sub(escaped, "[REDACTED_SYMBOL]", sanitized, flags=re.IGNORECASE)
 
         # Re-audit sanitized statement
         re_fingerprint, _ = self.detector.audit_statement(sanitized, patch_unified)

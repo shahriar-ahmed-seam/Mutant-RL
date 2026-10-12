@@ -10,6 +10,7 @@ from mutant_rl.schemas.environment import EnvironmentInstance
 @dataclass
 class GeneratorCalibrationWeights:
     """Tuned parameter weights aligning synthetic generator to real PR distributions."""
+
     min_files_per_mutation: int
     config_code_mutation_ratio: float
     target_problem_statement_length: int
@@ -46,7 +47,7 @@ class RealPRAnchorCalibrator:
                 if p.endswith((".yaml", ".yml", ".toml", ".json")):
                     config_files_count += 1
 
-        config_ratio = (config_files_count / max(1, total_files))
+        config_ratio = config_files_count / max(1, total_files)
 
         # Problem statement word length
         lengths = [len(inst.problem_statement.split()) for inst in real_pr_instances]
