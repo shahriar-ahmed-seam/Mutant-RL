@@ -1,0 +1,20 @@
+services:
+  mutant-rl-telemetry:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mutant-rl-telemetry
+    ports:
+      - "8080:8080"
+    environment:
+      - MUTANT_RL_ENV=production
+      - MUTANT_RL_HOST=0.0.0.0
+      - MUTANT_RL_PORT=8080
+    volumes:
+      - ./eval_reports:/app/eval_reports
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
