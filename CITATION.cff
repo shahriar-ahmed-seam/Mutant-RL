@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use Mutant-RL in your research or system evaluations, please cite it as below."
+authors:
+  - name: "Mutant-RL Systems Engineering Group"
+title: "Mutant-RL: Sim-to-Real Calibrated Synthetic Environment Generator and Policy Divergence Auditing for Software Engineering RL"
+version: 0.1.0
+date-released: 2026-10-12
+url: "https://github.com/shahriar-ahmed-seam/Mutant-RL"
+keywords:
+  - "reinforcement-learning"
+  - "swe-bench"
+  - "synthetic-data"
+  - "sim-to-real"
+  - "mutation-testing"
+  - "code-agents"
+license: "Apache-2.0"
